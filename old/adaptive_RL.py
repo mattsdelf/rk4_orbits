@@ -1,3 +1,4 @@
+#Monica Rizzo, 2017
 import numpy as np
 import math
 
