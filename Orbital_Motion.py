@@ -12,16 +12,57 @@ from __future__ import print_function, division, unicode_literals
 ######## Functions ########
 
 def cart_to_sphr(x,y,z):
+	import numpy as np
 	r = np.sqrt(x**2 + y**2 + z**2)
-	theta = np.acos(z/r)
-	phi = np.atan2(y/x)
+	theta = np.arccos(z/r)
+	phi = np.arctan2(y,x)
 	return r, theta, phi
 
-def sphr_to_cart(coords):
-	x = coords[0]*np.sin(coords[1])*np.cos(coords[2])
-	y = coords[0]*np.sin(coords[1])*np.sin(coords[2])
-	z = coords[0]*np.cos(coords[1])
+def sphr_to_cart(r,theta,phi):
+	import numpy as np
+	x = r*np.sin(theta)*np.cos(phi)
+	y = r*np.sin(theta)*np.sin(phi)
+	z = r*np.cos(theta)
 	return x,y,z
+
+def BT_fig1(obj):
+	'''
+	Phi(r) = (-GM)/(b + sqrt(b^2 + r^2))
+	dPhi(r) = GM r / (sqrt(b^2 + r^2 )*(b + sqrt(b^2 + r^2))^2)
+	'''
+	import numpy as np
+	G = 1.0
+	M = 1.0
+	b = obj[0]
+	x = obj[1]
+	y = obj[2]
+	z = obj[3]
+	vx = obj[4]
+	vy = obj[5]
+	vz = obj[6]
+
+	#r, theta, phi = cart_to_sphr(x,y,z)
+	#vr, vtheta, vphi = cart_to_sphr(vx,vy,vz)
+
+	#ar = -G*M*r/(np.sqrt(b**2 + r**2)*(b + np.sqrt(b**2 + r**2))**2)
+	ax = -G*M*x/(np.sqrt(b**2 + x**2)*(b + np.sqrt(b**2 + x**2))**2)
+	ay = -G*M*y/(np.sqrt(b**2 + y**2)*(b + np.sqrt(b**2 + y**2))**2)
+	az = -G*M*z/(np.sqrt(b**2 + z**2)*(b + np.sqrt(b**2 + z**2))**2)
+	#atheta = 0.0
+	#aphi =0.0
+	#ax, ay, az = sphr_to_cart(ar,atheta,aphi)
+
+	d_obj = np.empty(7)
+	d_obj[0] = 0
+	d_obj[1] = obj[4]
+	d_obj[2] = obj[5]
+	d_obj[3] = obj[6]
+	d_obj[4] = ax
+	d_obj[5] = ay
+	d_obj[6] = az
+
+	return d_obj
+
 
 def grav(obj):
 	'''
@@ -286,17 +327,56 @@ def plot_y(data_file,image_file,**kwargs):
 	# close the figure
 	pl.close()
 
+
+def plot_xy(data_file,image_file,**kwargs):
+	'''
+	Here, we're going to plot the y values against t for one set of data.
+	'''
+	import numpy as np
+	import pylab as pl
+
+
+	# load the text file
+	data = np.loadtxt(data_file)
+
+	# interpret the text file the way we've written it.
+	t = data[:,0]
+	w2 = data[0,1]
+	x = data[:,2]
+	y = data[:,3]
+	z = data[:,4]
+	vx = data[:,5]
+	vy = data[:,6]
+	vz = data[:,7]
+
+	# Open a figure
+	fig, ax = pl.subplots()
+
+	# Stylistic preference
+	fig.set_facecolor('grey')
+	
+	# Make the plot
+	ax.plot(x,y,label = "y")
+	# kwargs are used to set things like the title and axis labels
+	# from a higher fuction level.
+	ax.set(**kwargs)
+	# Save the image.
+	pl.savefig(image_file)
+	# close the figure
+	pl.close()
+
 ######## Main ########
 
 def main():
 	import numpy as np
-	obj = np.asarray([0,1,1,0,0,1,0]).astype(float)
-	t_initial = 0
-	t_final = 100
+	obj = np.asarray([0.1,1,0,0,0,2.7,0]).astype(float)
+	t_initial = 0.0
+	t_final = 100.0
 	dt_initial = 10**(-1)
 	dt_min = 10**(-4)
-	desired_fractional_error = 10**(-2)
+	desired_fractional_error = 10**(-3)
 	data_name = "sample_data.txt"
+	image_file = "fig_1.png"
 
 	adaptive_loop_writer(
 		obj, 
@@ -306,9 +386,12 @@ def main():
 		dt_min, 
 		desired_fractional_error,
 		data_name,
-		potential = grav, 
+		potential = BT_fig1, 
 		integrator = rk4_step
 		)
+
+	plot_xy(data_name,image_file)
+
 	pass
 
 ######## Execution ########
