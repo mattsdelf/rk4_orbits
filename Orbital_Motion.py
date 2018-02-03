@@ -11,6 +11,18 @@ from __future__ import print_function, division, unicode_literals
 
 ######## Functions ########
 
+def cart_to_sphr(x,y,z):
+	r = np.sqrt(x**2 + y**2 + z**2)
+	theta = np.acos(z/r)
+	phi = np.atan2(y/x)
+	return r, theta, phi
+
+def sphr_to_cart(coords):
+	x = coords[0]*np.sin(coords[1])*np.cos(coords[2])
+	y = coords[0]*np.sin(coords[1])*np.sin(coords[2])
+	z = coords[0]*np.cos(coords[1])
+	return x,y,z
+
 def grav(obj):
 	'''
 	This is a gravitational potential.
