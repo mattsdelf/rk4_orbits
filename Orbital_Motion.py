@@ -16,6 +16,16 @@ def grav(obj):
 	This is a gravitational potential.
 	Also, I was messing around with my animation tool, using this
 	piece of code.
+	
+	Object description:
+		Obj[0] = constant, was using mass. Doesn't do anything right now.
+		Obj[1-3] Position
+		Obj[4-6] Velocities
+
+	Derivative description:
+		d_obj[0] = 0 #constant does not change
+		d_obj[1-3] = obj_[4-6] # Update position with velocity
+		d_obj[4-6]: actually calculate the accelleration on the body.
 	'''
 	import numpy as np
 	# Obj: [0] constant [1-3] x,y,z [4-6] vx, vy, vz
