@@ -41,13 +41,15 @@ def BT_fig1(obj):
 	vy = obj[5]
 	vz = obj[6]
 
+	r2 = x**2 + y**2 + z**2
+
 	#r, theta, phi = cart_to_sphr(x,y,z)
 	#vr, vtheta, vphi = cart_to_sphr(vx,vy,vz)
 
 	#ar = -G*M*r/(np.sqrt(b**2 + r**2)*(b + np.sqrt(b**2 + r**2))**2)
-	ax = -G*M*x/(np.sqrt(b**2 + x**2)*(b + np.sqrt(b**2 + x**2))**2)
-	ay = -G*M*y/(np.sqrt(b**2 + y**2)*(b + np.sqrt(b**2 + y**2))**2)
-	az = -G*M*z/(np.sqrt(b**2 + z**2)*(b + np.sqrt(b**2 + z**2))**2)
+	ax = -G*M*x/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
+	ay = -G*M*y/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
+	az = -G*M*z/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
 	#atheta = 0.0
 	#aphi =0.0
 	#ax, ay, az = sphr_to_cart(ar,atheta,aphi)
@@ -64,7 +66,7 @@ def BT_fig1(obj):
 	return d_obj
 
 
-def grav(obj):
+def kepler(obj):
 	'''
 	This is a gravitational potential.
 	Also, I was messing around with my animation tool, using this
@@ -173,7 +175,7 @@ def write_line(fout, obj, t):
 	fout.write(line)
 
 def loop_writer(obj, T, dt, fname,
-			potential = grav,
+			potential = kepler,
 			integrator = rk4_step
 			):
 	'''
@@ -212,7 +214,7 @@ def adaptive_loop_writer(
 		dt_min, 
 		desired_fractional_error,
 		data_name,
-		potential = grav, 
+		potential = kepler, 
 		integrator = rk4_step
 		):
 	'''
@@ -361,7 +363,8 @@ def plot_xy(data_file,image_file,**kwargs):
 	# from a higher fuction level.
 	ax.set(**kwargs)
 	# Save the image.
-	pl.savefig(image_file)
+	#pl.savefig(image_file)
+	pl.show()
 	# close the figure
 	pl.close()
 
@@ -369,12 +372,16 @@ def plot_xy(data_file,image_file,**kwargs):
 
 def main():
 	import numpy as np
-	obj = np.asarray([0.1,1,0,0,0,2.7,0]).astype(float)
+	# for stable circular orbits, abs(v) = 1/sqrt(abs(r))
+	r = 1.0
+	v = 1.0/np.sqrt(r)
+
+	obj = np.asarray([np.pi/10,r,0,0,0,-v,0]).astype(float)
 	t_initial = 0.0
-	t_final = 100.0
+	t_final = 1000.0
 	dt_initial = 10**(-1)
-	dt_min = 10**(-4)
-	desired_fractional_error = 10**(-3)
+	dt_min = 10**(-5)
+	desired_fractional_error = 10**(-5)
 	data_name = "sample_data.txt"
 	image_file = "fig_1.png"
 
@@ -386,11 +393,12 @@ def main():
 		dt_min, 
 		desired_fractional_error,
 		data_name,
-		potential = BT_fig1, 
+		potential = BT_fig1,
 		integrator = rk4_step
 		)
 
 	plot_xy(data_name,image_file)
+	#plot_xy(data_name,image_file,xlim = [-1,1], ylim = [-1,1])
 
 	pass
 
