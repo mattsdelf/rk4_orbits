@@ -354,15 +354,14 @@ def main():
 	import numpy as np
 	import sys
 	# for stable circular orbits, abs(v) = 1/sqrt(abs(r))
-	r = 8.0
+	r = 1.0
 	v = 1.0/np.sqrt(r)
-	v = 2.4
 
 	#obj = np.asarray([np.pi/10,r,0,0,0,-v,0]).astype(float)
-	obj = np.asarray([0,r/np.sqrt(2),r/np.sqrt(2),0,
-		-v/np.sqrt(2),v/np.sqrt(2),0.5]).astype(float)
+	obj = np.asarray([0,r,0,0,
+		0,-v,0]).astype(float)
 	t_initial = 0.0
-	t_final = 150.0
+	t_final = 1000.0
 	dt_initial = 10**(-1)
 	dt_min = 10**(-5)
 	desired_fractional_error = 10**(-6)
@@ -382,9 +381,9 @@ def main():
 		)
 
 	plot_xy(data_name,image_file,
-		xlabel = "time (t)",
-		ylabel = "Total angular momentum (L)",
-		title = "Reproduction of BT figure 3.5")
+		xlabel = "position(x)",
+		ylabel = "position(y)",
+		title = "Reproduction of BT figure 9b")
 
 	pass
 

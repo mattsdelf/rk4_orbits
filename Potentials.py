@@ -116,9 +116,9 @@ def BT_fig_3_7(obj):
 	import numpy as np
 	G = 1.0
 	M = 1.0
-	rc = 0.14
+	rc = 0.5
 	v0 = 1
-	q = 0.9
+	q = 0.7
 
 	b = obj[0]
 	x = obj[1]
@@ -132,9 +132,13 @@ def BT_fig_3_7(obj):
 	#vr, vtheta, vphi = cart_to_sphr(vx,vy,vz)
 
 	#ar = -G*M*r/(np.sqrt(b**2 + r**2)*(b + np.sqrt(b**2 + r**2))**2)
-	ax = -(x*v0**2)/(rc**2 + x**2 + (y/q)*2)
-	ay = -(y*v0**2)/(q**2*(rc**2 + x**2 + (y/q)**2))
-	az = 0
+	#ax = -(x*v0**2)/((rc**2 + x**2 + (y/q)*2 + z**2)**(3/2))
+	#ay = -(y*v0**2)/((q**2*(rc**2 + x**2 + (y/q)**2) + z**2)**(3/2))
+	#az = -(z*v0**2)/((rc**2 + x**2 + (y/q)*2 + z**2)**(3/2))
+
+	ax = -(v0**2)*x/((rc**2 + x**2 + (y/q)**2 + z**2))
+	ay = -(v0**2)*y/((q**2)*(rc**2 + x**2 + (y/q)**2 + z**2))
+	az = -(v0**2)*z/((rc**2 + x**2 + (y/q)**2 + z**2))
 	#atheta = 0.0
 	#aphi =0.0
 	#ax, ay, az = sphr_to_cart(ar,atheta,aphi)
