@@ -8,6 +8,7 @@ This body of code exists to implement rk4 techniques for bodies
 in a given potential.
 '''
 from __future__ import print_function, division, unicode_literals
+import Potentials
 
 ######## Functions ########
 
@@ -25,112 +26,6 @@ def sphr_to_cart(r,theta,phi):
 	z = r*np.cos(theta)
 	return x,y,z
 
-def BT_fig1(obj):
-	'''
-	Phi(r) = (-GM)/(b + sqrt(b^2 + r^2))
-	dPhi(r) = GM r / (sqrt(b^2 + r^2 )*(b + sqrt(b^2 + r^2))^2)
-	'''
-	import numpy as np
-	G = 1.0
-	M = 1.0
-	b = obj[0]
-	x = obj[1]
-	y = obj[2]
-	z = obj[3]
-	vx = obj[4]
-	vy = obj[5]
-	vz = obj[6]
-
-	r2 = x**2 + y**2 + z**2
-
-	#r, theta, phi = cart_to_sphr(x,y,z)
-	#vr, vtheta, vphi = cart_to_sphr(vx,vy,vz)
-
-	#ar = -G*M*r/(np.sqrt(b**2 + r**2)*(b + np.sqrt(b**2 + r**2))**2)
-	ax = -G*M*x/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
-	ay = -G*M*y/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
-	az = -G*M*z/(np.sqrt(b**2 + r2)*(b + np.sqrt(b**2 + r2))**2)
-	#atheta = 0.0
-	#aphi =0.0
-	#ax, ay, az = sphr_to_cart(ar,atheta,aphi)
-
-	d_obj = np.empty(7)
-	d_obj[0] = 0
-	d_obj[1] = obj[4]
-	d_obj[2] = obj[5]
-	d_obj[3] = obj[6]
-	d_obj[4] = ax
-	d_obj[5] = ay
-	d_obj[6] = az
-
-	return d_obj
-
-
-def kepler(obj):
-	'''
-	This is a gravitational potential.
-	Also, I was messing around with my animation tool, using this
-	piece of code.
-	
-	Object description:
-		Obj[0] = constant, was using mass. Doesn't do anything right now.
-		Obj[1-3] Position
-		Obj[4-6] Velocities
-
-	Derivative description:
-		d_obj[0] = 0 #constant does not change
-		d_obj[1-3] = obj_[4-6] # Update position with velocity
-		d_obj[4-6]: actually calculate the accelleration on the body.
-	'''
-	import numpy as np
-	# Obj: [0] constant [1-3] x,y,z [4-6] vx, vy, vz
-	G = 1
-	M = 1
-	r2 = obj[1]**2 + obj[2]**2 + obj[3]**2
-	A = -(G*M/r2)/np.sqrt(r2)
-	return np.asarray([0,obj[4],obj[5],obj[6],
-		A*obj[1],A*obj[2],A*obj[3]])
-
-def spring(obj):
-	'''
-	I'll store the quantity (k/m) in obj[0],
-	so in this function, I only need that constant.
-	Note that F = ma = -ky -> a = -(k/m)y
-	Our object includes:
-		obj[0]: the constant
-		obj[1]: y position
-		obj[2]: y velocity
-
-	The derivatives returned from this function break down as follows:
-		d(obj[0]) = 0; The constant does not need to change.
-		d(obj[1]) = obj[2]; The change in position is equal to 
-			the current velocity.
-		d(obj[2]) = -obj[0]*obj[1]; This is where we use the constant
-			to calculate and return an accelleration.
-	'''
-	import numpy as np
-	return np.asarray([0,obj[2], -obj[0]*obj[1]])
-
-def pendulum(obj):
-	'''
-	I'll store the quantity (g/L) in obj[0],
-	so in this function, I only need that constant.
-	Note that F = ma = -g*sin(theta) -> a = -(g/L)sin(theta)
-	Our object includes:
-		obj[0]: the constant
-		obj[1]: theta position
-		obj[2]: theta velocity
-
-	The derivatives returned from this function break down as follows:
-		d(obj[0]) = 0; The constant does not need to change.
-		d(obj[1]) = obj[2]; The change in position is equal to 
-			the current velocity.
-		d(obj[2]) = -obj[0]*np.sin(obj[1]); This is where we use the 
-			constant to calculate and return an accelleration.
-	'''
-	import numpy as np
-	return np.asarray([0,obj[2], -obj[0]*np.sin(obj[1])])
-			
 def rk4_step(obj,dt,potential):
 	'''
 	This function steps an object forward in time,
@@ -175,7 +70,7 @@ def write_line(fout, obj, t):
 	fout.write(line)
 
 def loop_writer(obj, T, dt, fname,
-			potential = kepler,
+			potential = Potentials.kepler,
 			integrator = rk4_step
 			):
 	'''
@@ -214,7 +109,7 @@ def adaptive_loop_writer(
 		dt_min, 
 		desired_fractional_error,
 		data_name,
-		potential = kepler, 
+		potential = Potentials.kepler, 
 		integrator = rk4_step
 		):
 	'''
@@ -298,7 +193,8 @@ def adaptive_loop_writer(
 
 def plot_y(data_file,image_file,**kwargs):
 	'''
-	Here, we're going to plot the y values against t for one set of data.
+	Here, we're going to plot the y values against t 
+	for one set of data.
 	'''
 	import numpy as np
 	import pylab as pl
@@ -363,27 +259,115 @@ def plot_xy(data_file,image_file,**kwargs):
 	# from a higher fuction level.
 	ax.set(**kwargs)
 	# Save the image.
-	#pl.savefig(image_file)
+	pl.savefig(image_file)
 	pl.show()
 	# close the figure
 	pl.close()
+
+def plot_rz(data_file,image_file,**kwargs):
+	'''
+	Here, we're going to plot the y values against t for one set of data.
+	'''
+	import numpy as np
+	import pylab as pl
+
+
+	# load the text file
+	data = np.loadtxt(data_file)
+
+	# interpret the text file the way we've written it.
+	t = data[:,0]
+	w2 = data[0,1]
+	x = data[:,2]
+	y = data[:,3]
+	z = data[:,4]
+	vx = data[:,5]
+	vy = data[:,6]
+	vz = data[:,7]
+	r = x**2 + y**2
+
+	# Open a figure
+	fig, ax = pl.subplots()
+
+	# Stylistic preference
+	fig.set_facecolor('grey')
+	
+	# Make the plot
+	ax.plot(r,z,label = "z")
+	# kwargs are used to set things like the title and axis labels
+	# from a higher fuction level.
+	ax.set(**kwargs)
+	# Save the image.
+	pl.savefig(image_file)
+	pl.show()
+	# close the figure
+	pl.close()
+
+def plot_Lt(data_file,image_file,**kwargs):
+	'''
+	Here, we're going to plot the y values against t for one set of data.
+	'''
+	import numpy as np
+	import pylab as pl
+
+
+	# load the text file
+	data = np.loadtxt(data_file)
+
+	# interpret the text file the way we've written it.
+	t = data[:,0]
+	w2 = data[0,1]
+	x = data[:,2]
+	y = data[:,3]
+	z = data[:,4]
+	vx = data[:,5]
+	vy = data[:,6]
+	vz = data[:,7]
+	Lz = x*vy - y*vx
+	Lx = y*vz - z*vy
+	Ly = z*vx - x*vz
+	L = np.sqrt(Lx*Lx + Ly*Ly + Lz*Lz)
+
+	# Open a figure
+	fig, ax = pl.subplots()
+
+	# Stylistic preference
+	fig.set_facecolor('grey')
+	
+	# Make the plot
+	ax.plot(t,L,label = "z")
+	# kwargs are used to set things like the title and axis labels
+	# from a higher fuction level.
+	ax.set(**kwargs)
+	# Save the image.
+	pl.savefig(image_file)
+	pl.show()
+	# close the figure
+	pl.close()
+
+
+
 
 ######## Main ########
 
 def main():
 	import numpy as np
+	import sys
 	# for stable circular orbits, abs(v) = 1/sqrt(abs(r))
-	r = 1.0
+	r = 8.0
 	v = 1.0/np.sqrt(r)
+	v = 2.4
 
-	obj = np.asarray([np.pi/10,r,0,0,0,-v,0]).astype(float)
+	#obj = np.asarray([np.pi/10,r,0,0,0,-v,0]).astype(float)
+	obj = np.asarray([0,r/np.sqrt(2),r/np.sqrt(2),0,
+		-v/np.sqrt(2),v/np.sqrt(2),0.5]).astype(float)
 	t_initial = 0.0
-	t_final = 1000.0
+	t_final = 150.0
 	dt_initial = 10**(-1)
 	dt_min = 10**(-5)
-	desired_fractional_error = 10**(-5)
+	desired_fractional_error = 10**(-6)
 	data_name = "sample_data.txt"
-	image_file = "fig_1.png"
+	image_file = sys.argv[1]
 
 	adaptive_loop_writer(
 		obj, 
@@ -393,12 +377,14 @@ def main():
 		dt_min, 
 		desired_fractional_error,
 		data_name,
-		potential = BT_fig1,
+		potential = Potentials.BT_fig_3_7,
 		integrator = rk4_step
 		)
 
-	plot_xy(data_name,image_file)
-	#plot_xy(data_name,image_file,xlim = [-1,1], ylim = [-1,1])
+	plot_xy(data_name,image_file,
+		xlabel = "time (t)",
+		ylabel = "Total angular momentum (L)",
+		title = "Reproduction of BT figure 3.5")
 
 	pass
 

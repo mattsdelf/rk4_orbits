@@ -63,16 +63,17 @@ def sim_vid(infile,outfile,n_steps,frames,scale):
 			print("Recorded %d out of %d"%((k+1),frames))
 
 def main():
-	obj = np.asarray([1,18,0,0,0,0.18,0]).astype(float)
+	obj = np.asarray([np.pi/10,4,0,0,0,-2,0]).astype(float)
 	data_file = "sample_data.txt"
 	video_file = "sample_video.mp4"
 	image_file = "sample_plot.png"
-	dt = 0.01
+	dt = 0.001
 	frames = 150
 	scale = 5.0
-	T = 1000.0
+	T = 50.0
 	n_steps = int(T/dt)
-	Orbital_Motion.loop(obj,dt,T,data_file)
+	Orbital_Motion.loop_writer(obj,T,dt,data_file,
+		potential = Orbital_Motion.BT_fig1)
 	#Orbital_Motion.plot_xy_vs_t(data_file,image_file)
 	sim_vid(data_file,video_file,n_steps,frames,scale)
 
